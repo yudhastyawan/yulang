@@ -1,3 +1,6 @@
+build/
+.vscode/
+# -- end of user config --
 
 # Created by https://www.toptal.com/developers/gitignore/api/c++,visualstudiocode,visualstudio,git,cmake
 # Edit at https://www.toptal.com/developers/gitignore?templates=c++,visualstudiocode,visualstudio,git,cmake
