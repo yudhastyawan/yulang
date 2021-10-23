@@ -35,7 +35,8 @@ namespace yu {
 #define yylex scanner.yylex
 
 #define M(x) std::move(x)
-#define C(x) yu::expression(x)
+#define C(...) yu::expression(driver.is_debug, __VA_ARGS__ )
+typedef std::list<yu::expression *> listeptr_t;
 }
 
 %define api.value.type variant
@@ -61,10 +62,11 @@ namespace yu {
 %%
 
 calclist: %empty
-   | calclist stmt ';'
-   | calclist PRINT exp ';' { driver.console($3->expr.eval<double>()); }
+   | calclist stmt ';' { if (driver.is_interactive == 1) std::cout << "y> "; }
+   | calclist PRINT exp ';' { driver.console($3->expr.eval<double>()); if (driver.is_interactive == 1) std::cout << "y> ";}
    | calclist PRINT LOC ';' { 
                               driver.console("parent: " + driver.sc_in->prev->name + ", loc: " + driver.sc_in->name);
+                              if (driver.is_debug == 1) {
                               for (const auto& elem : driver.sc_in->curr_scope)
                               {
                                  std::cout << elem.first << " " << &(elem.second.expr) << " S:";
@@ -73,9 +75,11 @@ calclist: %empty
                                  std::cout << elem.second.expr.childf.size() << std::endl;
                               }
                               std::cout << "-----" << std::endl;
+                              }
+                              if (driver.is_interactive == 1) std::cout << "y> ";
                             }
-   | calclist ob calclist cb
-   | calclist fun_def
+   | calclist ob calclist cb { if (driver.is_interactive == 1) std::cout << "y> "; }
+   | calclist fun_def { if (driver.is_interactive == 1) std::cout << "y> "; }
    ;
 
 ob
@@ -132,14 +136,16 @@ fun_call: VARIABLE {
          } 
          '(' args ')'
          {
-            //std::cout << "inside [" << $1 << "]: C:" << driver.fun_tmp->ret->expr.children.size() << ", S:";
-            //std::cout << driver.fun_tmp->curr_scope.size() << std::endl;
+            if (driver.is_debug == 1) {
+            std::cout << "inside [" << $1 << "]: C:" << driver.tmp_fcall.back()->ret->expr.children.size() << ", S:";
+            std::cout << driver.tmp_fcall.back()->curr_scope.size() << std::endl;
             for (const auto& elem : driver.tmp_fcall.back()->curr_scope)
             {
                std::cout << elem.first << " " << &(elem.second.expr) << "\n";
             }
             std::cout << "ret: " << &(driver.tmp_fcall.back()->ret->expr) << std::endl;
             std::cout << "-----" << std::endl;
+            }
             $$ = driver.tmp_fcall.back()->ret;
             driver.tmp_fcall.pop_back();
             driver.sc_in = driver.sc_out;
@@ -180,13 +186,14 @@ exp: INTEGER { $$ = driver.temp(); $$->expr.assign(C($1)); }
    | VARIABLE { $$ = driver.use($1); }
    | fun_call { $$ = $1; }
    | exp '=' exp { $1->assign($3); $$ = $1; }
-   | exp '+' exp { $$ = driver.temp(); $$->expr.assign(yu::expression(yu::ex::add, M($1->expr), M($3->expr))); }
-   | exp '-' exp { $$ = driver.temp(); $$->expr.assign(yu::expression(yu::ex::subs, M($1->expr), M($3->expr))); }
-   | '-' exp %prec UMINUS { $$ = driver.temp(); $$->expr.assign(yu::expression(yu::ex::neg, M($2->expr))); }
-   | exp '*' exp { $$ = driver.temp(); $$->expr.assign(yu::expression(yu::ex::mul, M($1->expr), M($3->expr))); }
-   | exp '/' exp { $$ = driver.temp(); $$->expr.assign(yu::expression(yu::ex::div, M($1->expr), M($3->expr))); }
-   | exp '^' exp { $$ = driver.temp(); $$->expr.assign(yu::expression(yu::ex::pow, M($1->expr), M($3->expr))); }
-   | exp '%' exp { $$ = driver.temp(); $$->expr.assign(yu::expression(yu::ex::mod, M($1->expr), M($3->expr))); }
+   | exp '+' exp { $$ = driver.temp(); $$->expr.assign(C(yu::ex::add, M($1->expr), M($3->expr))); }
+   | exp '-' exp { $$ = driver.temp(); $$->expr.assign(C(yu::ex::subs, M($1->expr), M($3->expr))); }
+   | '-' exp %prec UMINUS { $$ = driver.temp(); $$->expr.assign(C(yu::ex::neg, M($2->expr))); }
+   | exp '*' exp { $$ = driver.temp(); $$->expr.assign(C(yu::ex::mul, M($1->expr), M($3->expr))); }
+   | exp '/' exp { $$ = driver.temp(); $$->expr.assign(C(yu::ex::div, M($1->expr), M($3->expr))); }
+   | exp '^' exp { $$ = driver.temp(); $$->expr.assign(C(yu::ex::pow, M($1->expr), M($3->expr))); }
+   | exp '%' exp { $$ = driver.temp(); $$->expr.assign(C(yu::ex::mod, M($1->expr), M($3->expr))); }
+   | '(' exp ')' { $$ = $2; }
    ;
 
 expf: INTEGER { $$ = driver.temp(); $$->expr.assign(C($1)); }
@@ -194,14 +201,15 @@ expf: INTEGER { $$ = driver.temp(); $$->expr.assign(C($1)); }
    | VARIABLE { $$ = driver.use($1); }
    | fun_call { $$ = $1; }
    | expf '=' expf { $1->assign($3); $$ = $1; }
-   | expf '+' expf { $$ = driver.temp(); $$->expr.assign(yu::expression(yu::ex::addf, std::list<expression *>{&($1->expr), &($3->expr)})); }
-   | expf '-' expf { $$ = driver.temp(); $$->expr.assign(yu::expression(yu::ex::subsf, std::list<expression *>{&($1->expr), &($3->expr)})); }
-   | '-' expf %prec UMINUS { $$ = driver.temp(); $$->expr.assign(yu::expression(yu::ex::negf, std::list<expression *>{&($2->expr)})); }
-   | expf '*' expf { $$ = driver.temp(); $$->expr.assign(yu::expression(yu::ex::mulf, std::list<expression *>{&($1->expr), &($3->expr)})); }
-   | expf '/' expf { $$ = driver.temp(); $$->expr.assign(yu::expression(yu::ex::divf, std::list<expression *>{&($1->expr), &($3->expr)})); }
+   | expf '+' expf { $$ = driver.temp(); $$->expr.assign(C(yu::ex::addf, listeptr_t{&($1->expr), &($3->expr)})); }
+   | expf '-' expf { $$ = driver.temp(); $$->expr.assign(C(yu::ex::subsf, listeptr_t{&($1->expr), &($3->expr)})); }
+   | '-' expf %prec UMINUS { $$ = driver.temp(); $$->expr.assign(C(yu::ex::negf, listeptr_t{&($2->expr)})); }
+   | expf '*' expf { $$ = driver.temp(); $$->expr.assign(C(yu::ex::mulf, listeptr_t{&($1->expr), &($3->expr)})); }
+   | expf '/' expf { $$ = driver.temp(); $$->expr.assign(C(yu::ex::divf, listeptr_t{&($1->expr), &($3->expr)})); }
    | expf '^' expf { $$ = driver.temp(); 
-                     $$->expr.assign(yu::expression(yu::ex::powf, std::list<expression *>{&($1->expr), &($3->expr)})); }
-   | expf '%' expf { $$ = driver.temp(); $$->expr.assign(yu::expression(yu::ex::modf, std::list<expression *>{&($1->expr), &($3->expr)})); }
+                     $$->expr.assign(C(yu::ex::powf, listeptr_t{&($1->expr), &($3->expr)})); }
+   | expf '%' expf { $$ = driver.temp(); $$->expr.assign(C(yu::ex::modf, listeptr_t{&($1->expr), &($3->expr)})); }
+   | '(' expf ')' { $$ = $2; }
    ;
 
 %%

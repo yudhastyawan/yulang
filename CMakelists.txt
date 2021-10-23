@@ -12,23 +12,23 @@ project(yulang CXX)
 
 cmake_minimum_required(VERSION 3.1)
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/yu_expr.hpp ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
+# configure_file(${CMAKE_CURRENT_SOURCE_DIR}/yu_expr.hpp ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 
 find_package(BISON REQUIRED)
 find_package(FLEX REQUIRED)
 
 BISON_TARGET(yu_parser
-             yu_parser.yy
-             ${CMAKE_CURRENT_BINARY_DIR}/yu_parser.tab.cc
-             COMPILE_FLAGS ${BISON_FLAGS})
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/yu_parser.yy
+            ${CMAKE_CURRENT_BINARY_DIR}/yu_parser.tab.cc
+            COMPILE_FLAGS ${BISON_FLAGS})
 FLEX_TARGET(yu_lexer
-            yu_lexer.l
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/yu_lexer.l
             ${CMAKE_CURRENT_BINARY_DIR}/yu_lexer.yy.cc)
 ADD_FLEX_BISON_DEPENDENCY(yu_lexer yu_parser)
 
 add_executable(yulang
-    main.cpp
-    yu_driver.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/yu_driver.cpp
 
     ${FLEX_yu_lexer_OUTPUTS}
     ${BISON_yu_parser_OUTPUTS}
@@ -36,6 +36,7 @@ add_executable(yulang
 target_include_directories(yulang
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${FLEX_INCLUDE_DIRS}
         ${CMAKE_CURRENT_BINARY_DIR})
 set_property(TARGET yulang

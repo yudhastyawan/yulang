@@ -74,6 +74,17 @@ yu::yu_driver::parse_helper( std::istream &stream )
    return;
 }
 
+std::ostream& yu::yu_driver::console(double arg) {
+   return console_basic<double>(arg);
+}
+
+std::ostream& yu::yu_driver::console(int arg){
+   return console_basic<int>(arg);
+}
+std::ostream& yu::yu_driver::console(std::string arg){
+   return console_basic<std::string>(arg);
+}
+
 std::ostream& yu::yu_driver::errcon(const std::string& err){
    return (std::cerr << color::red << err << color::norm << std::endl);
 }
@@ -87,12 +98,12 @@ yu::scopes* yu::yu_driver::define(const std::string& name, yu::expression&& e)
 
 yu::scopes* yu::yu_driver::def(const std::string& name)
 {
-   return yu::yu_driver::define(name, yu::expression(name));
+   return yu::yu_driver::define(name, yu::expression(is_debug, name));
 }
 
 yu::scopes* yu::yu_driver::defun(const std::string& name)
 {
-   return yu::yu_driver::define(name, yu::expression(name, yu::id::function));
+   return yu::yu_driver::define(name, yu::expression(is_debug, name, yu::id::function));
 }
 
 static int useref(yu::scopes* in, yu::scopes* out, const std::string& name, yu::scopes** ret)

@@ -1,0 +1,7 @@
+func a:
+{
+    return a * 5;
+}
+
+// without explicit arguments (a = 10) -> (10)
+print func(10);

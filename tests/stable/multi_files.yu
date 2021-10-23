@@ -1,0 +1,9 @@
+// relative to current directory of terminal (or shell)
+// you can import multiple relative paths and they do not create error
+
+import: "tests/stable/multi_files/includes.yu"
+import: "stable/multi_files/includes.yu"
+import: "multi_files/includes.yu"
+
+var c = multiply(a = 10, b = 20);
+print c;

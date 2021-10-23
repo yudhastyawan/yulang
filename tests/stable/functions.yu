@@ -1,0 +1,17 @@
+// create a square function
+square p, l:
+{
+    var L = p * l;
+    return L;
+}
+
+// using the square function in a volume function
+volume t:
+{
+    var V = square(p = 5, l = 6) * t;
+    return V;
+}
+
+// assigning volume return in myVol variable
+var myVol = volume(t = 4);
+print myVol;

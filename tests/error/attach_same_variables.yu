@@ -1,0 +1,7 @@
+var a = 5;
+var b = 3;
+var c = a + b;
+var d = a - b;
+
+print c;
+print d; // generates 0

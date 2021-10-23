@@ -1,0 +1,13 @@
+fn1 a:
+{
+    return a * 2;
+}
+
+fn2 b:
+{
+    var c = fn1(a = b);
+    return c;
+}
+
+var d = fn2(b = 5);
+print d; // generates 0

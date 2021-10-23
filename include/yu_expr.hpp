@@ -28,17 +28,18 @@ struct expression {
     id id_type = id::undefined;
     long int_val = 0;
     double flt_val = 0.;
+    int is_debug = 0;
     std::list<expression> children;
     std::list<expression *> childf;
 
     template <class... T>
-    expression(ex e, T&&... args) : ex_type(e), children {std::forward<T>(args)... } {}
-    expression(ex e, std::list<expression *>&& c) : ex_type(e), childf(c) {std::cout << "size: " << childf.size() << std::endl;}
+    expression(int d, ex e, T&&... args) : ex_type(e), is_debug(d), children {std::forward<T>(args)... } {}
+    expression(int d, ex e, std::list<expression *>&& c) : ex_type(e), is_debug(d), childf(c) {}
     expression() : ex_type(ex::none) {}
-    expression(long v) : ex_type(ex::integer), int_val(v) {}
-    expression(double v) : ex_type(ex::flt), flt_val(v) {}
-    expression(const std::string& str) : ex_type(ex::ident), id_type(id::variable) {}
-    expression(const std::string& str, id t) : ex_type(ex::ident), id_type(t) {}
+    expression(int d, long v) : ex_type(ex::integer), int_val(v), is_debug(d) {}
+    expression(int d, double v) : ex_type(ex::flt), flt_val(v), is_debug(d) {}
+    expression(int d, const std::string& str) : ex_type(ex::ident), id_type(id::variable), is_debug(d) {}
+    expression(int d, const std::string& str, id t) : ex_type(ex::ident), id_type(t), is_debug(d) {}
     void assign(expression&& e)
     {
         if(children.size() != 0) children.clear();
@@ -49,33 +50,35 @@ struct expression {
     T eval()
     {
         T v = 0;
-        #define PROCESS_VAL(p) case(p): s = #p; break;
-        std::string s;
-        switch(ex_type){
-            PROCESS_VAL(ex::integer);
-            PROCESS_VAL(ex::flt);
-            PROCESS_VAL(ex::add);
-            PROCESS_VAL(ex::subs);
-            PROCESS_VAL(ex::mul);
-            PROCESS_VAL(ex::div);
-            PROCESS_VAL(ex::pow);
-            PROCESS_VAL(ex::mod);
-            PROCESS_VAL(ex::neg);
-            PROCESS_VAL(ex::ident);
-            /* not handled
-            { 
-                cor, cand, loop,
-                fcall }; */
-            PROCESS_VAL(ex::str);
-            PROCESS_VAL(ex::ret);
-            PROCESS_VAL(ex::assign);
-            PROCESS_VAL(ex::none);
-            PROCESS_VAL(ex::comma);
-            PROCESS_VAL(ex::copy);
-            default: s = "not handled";
+        if (is_debug == 1) {
+            #define PROCESS_VAL(p) case(p): s = #p; break;
+            std::string s;
+            switch(ex_type){
+                PROCESS_VAL(ex::integer);
+                PROCESS_VAL(ex::flt);
+                PROCESS_VAL(ex::add);
+                PROCESS_VAL(ex::subs);
+                PROCESS_VAL(ex::mul);
+                PROCESS_VAL(ex::div);
+                PROCESS_VAL(ex::pow);
+                PROCESS_VAL(ex::mod);
+                PROCESS_VAL(ex::neg);
+                PROCESS_VAL(ex::ident);
+                /* not handled
+                { 
+                    cor, cand, loop,
+                    fcall }; */
+                PROCESS_VAL(ex::str);
+                PROCESS_VAL(ex::ret);
+                PROCESS_VAL(ex::assign);
+                PROCESS_VAL(ex::none);
+                PROCESS_VAL(ex::comma);
+                PROCESS_VAL(ex::copy);
+                default: s = "cor, cand, loop, or *f";
+            }
+            std::cout << "tree: " << s << " -> C:" << children.size() << ", F:" << childf.size() << " " << this << std::endl;
+            #undef PROCESS_VAL
         }
-        std::cout << "tree: " << s << " -> C:" << children.size() << ", F:" << childf.size() << " " << this << std::endl;
-        #undef PROCESS_VAL
         switch(ex_type)
         {
             case ex::integer: v = int_val; break;

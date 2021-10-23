@@ -1,9 +1,0 @@
-func1 c:
-{
-    return c;
-}
-
-func2 a, b:
-{
-    return func1(c = a) * b;
-}

@@ -1,0 +1,6 @@
+print 10 + 30;
+print 10 - 30;
+print 10. / 30.;
+print 10 * 30;
+print 30 % 9;
+print (5. + 5.) / 3.;

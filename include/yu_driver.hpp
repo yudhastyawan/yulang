@@ -39,9 +39,13 @@ public:
    void parse( std::istream &iss );
 
    template <typename A>
-   std::ostream& console(const A& arg){ 
+   std::ostream& console_basic(const A& arg){
         return (std::cout << color::blue << "print: " << color::norm << arg << std::endl);
    }
+
+   std::ostream& console(double arg);
+   std::ostream& console(int arg);
+   std::ostream& console(std::string arg);
 
    std::ostream& errcon(const std::string& err);
 
@@ -57,6 +61,9 @@ public:
    yu::scopes* sc_out = &(scope->curr_scope["main"]);
    std::vector<yu::scopes*> tmp_fdef;
    std::vector<yu::scopes*> tmp_fcall;
+
+   bool is_interactive = 0;
+   bool is_debug = 0;
    
 private:
 
