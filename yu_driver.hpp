@@ -55,7 +55,8 @@ public:
    yu::scopes* scope = new scopes();
    yu::scopes* sc_in = &(scope->curr_scope["main"]);
    yu::scopes* sc_out = &(scope->curr_scope["main"]);
-   yu::scopes* fun_tmp;
+   std::vector<yu::scopes*> tmp_fdef;
+   std::vector<yu::scopes*> tmp_fcall;
    
 private:
 

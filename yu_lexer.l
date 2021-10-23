@@ -28,7 +28,7 @@ std::vector<std::ifstream*> fil_vec;
 %{          /** Code executed at the beginning of yylex **/
             yylval = lval;
 %}
-^"#"[ \t]*include[ \t]*[\"<]+ { BEGIN(IFILE); }
+import:[ \t]*[\"<]+ { BEGIN(IFILE); }
 <IFILE>[^ \t\n\">]+ {
     {
         int c;

@@ -108,7 +108,7 @@ listf: %empty
 
 fun_def: VARIABLE 
          {
-            driver.fun_tmp = driver.defun($1);
+            driver.tmp_fdef.push_back(driver.defun($1));
             driver.sc_out = driver.sc_in; 
             driver.sc_in->curr_scope.emplace($1, scopes(driver.sc_in, $1)); 
             driver.sc_in = &(driver.sc_in->curr_scope[$1]); 
@@ -117,37 +117,39 @@ fun_def: VARIABLE
          RETURN expf ';'
          '}' 
          {  
-            driver.fun_tmp->ret = $8;
+            driver.tmp_fdef.back()->ret = $8;
             driver.sc_in = driver.sc_out;
             driver.sc_out = driver.sc_in->prev;
-            $$ = driver.fun_tmp;
+            $$ = driver.tmp_fdef.back();
+            driver.tmp_fdef.pop_back();
          }
    ;
 
 fun_call: VARIABLE {
-            driver.fun_tmp = driver.usefun($1);
-            //driver.sc_out = driver.sc_in;
-            //driver.sc_in = &(driver.fun_tmp->prev->curr_scope[$1]);
+            driver.tmp_fcall.push_back(driver.usefun($1));
+            driver.sc_out = driver.sc_in;
+            driver.sc_in = &(driver.tmp_fcall.back()->prev->curr_scope[$1]);
          } 
          '(' args ')'
          {
             //std::cout << "inside [" << $1 << "]: C:" << driver.fun_tmp->ret->expr.children.size() << ", S:";
             //std::cout << driver.fun_tmp->curr_scope.size() << std::endl;
-            for (const auto& elem : driver.fun_tmp->curr_scope)
+            for (const auto& elem : driver.tmp_fcall.back()->curr_scope)
             {
                std::cout << elem.first << " " << &(elem.second.expr) << "\n";
             }
-            std::cout << "ret: " << &(driver.fun_tmp->ret->expr) << std::endl;
+            std::cout << "ret: " << &(driver.tmp_fcall.back()->ret->expr) << std::endl;
             std::cout << "-----" << std::endl;
-            $$ = driver.fun_tmp->ret;
-            //driver.sc_in = driver.sc_out;
-            //driver.sc_out = driver.sc_in->prev;
+            $$ = driver.tmp_fcall.back()->ret;
+            driver.tmp_fcall.pop_back();
+            driver.sc_in = driver.sc_out;
+            driver.sc_out = driver.sc_in->prev;
          }
    ;
 
 args: %empty
-   | arg_def1 { auto tmp = &(driver.fun_tmp->curr_scope[$1.name]); tmp->assign($1.prev); }
-   | args ',' arg_def1 { auto tmp = &(driver.fun_tmp->curr_scope[$3.name]); tmp->assign($3.prev); }
+   | arg_def1 { auto tmp = &(driver.tmp_fcall.back()->curr_scope[$1.name]); tmp->assign($1.prev); }
+   | args ',' arg_def1 { auto tmp = &(driver.tmp_fcall.back()->curr_scope[$3.name]); tmp->assign($3.prev); }
 
 arg_def1: VARIABLE '=' expf { $$ = yu::scopes($3, $1);}
    ;
@@ -191,7 +193,7 @@ expf: INTEGER { $$ = driver.temp(); $$->expr.assign(C($1)); }
    | FLOAT { $$ = driver.temp(); $$->expr.assign(C($1)); }
    | VARIABLE { $$ = driver.use($1); }
    | fun_call { $$ = $1; }
-   | expf '=' expf { printf("assign\n"); $1->assign($3); $$ = $1; }
+   | expf '=' expf { $1->assign($3); $$ = $1; }
    | expf '+' expf { $$ = driver.temp(); $$->expr.assign(yu::expression(yu::ex::addf, std::list<expression *>{&($1->expr), &($3->expr)})); }
    | expf '-' expf { $$ = driver.temp(); $$->expr.assign(yu::expression(yu::ex::subsf, std::list<expression *>{&($1->expr), &($3->expr)})); }
    | '-' expf %prec UMINUS { $$ = driver.temp(); $$->expr.assign(yu::expression(yu::ex::negf, std::list<expression *>{&($2->expr)})); }

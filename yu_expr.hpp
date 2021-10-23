@@ -23,6 +23,7 @@ enum class ex { none, str, integer, flt, ident,
                 ret };
 
 struct expression {
+    expression * ptrthis = this;
     ex ex_type = ex::none;
     id id_type = id::undefined;
     long int_val = 0;

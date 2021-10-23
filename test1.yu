@@ -1,6 +1,12 @@
-fn:
+func1 a:
 {
-    var a = 5;
     return a;
 }
-print fn();
+
+func2 b:
+{
+    return func1(a = b);
+}
+
+var c = 5;
+print func2(b = c);
