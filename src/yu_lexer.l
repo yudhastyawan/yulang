@@ -3,6 +3,7 @@
 #include <fstream>
 #include <vector>
 #include <utility>
+#include <regex>
 
 #include "yu_scanner.hpp"
 #undef  YY_DECL
@@ -61,11 +62,21 @@ import:[ \t]*[\"<]+ { BEGIN(IFILE); }
         }
 
 
-"/>"[ \t\n]* { BEGIN(COMMENTS); }
+"/>" { BEGIN(COMMENTS); }
 <COMMENTS>{
-    [ \t\n]+ { }
+    [ \t\n]+ {}
+    "</" { BEGIN(INITIAL); }
     . { }
-    [ \t\n]*"</" { BEGIN(INITIAL); }
+}
+
+
+["]([^"\\\n]|\\(.|\n))*["] { 
+std::string text(yytext);
+text = std::regex_replace(text, std::regex("[\"]"), "");
+text = std::regex_replace(text, std::regex(R"(\\n)"), "\n");
+text = std::regex_replace(text, std::regex(R"(\\t)"), "\t");
+text = std::regex_replace(text, std::regex(R"(\\\\)"), "\\");
+yylval->emplace<std::string>(std::string(text)); return token::STRING;
 }
 
 "+" |

@@ -13,9 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - multi-line comments `/> ... </`.
 - space in `import:` string.
 - `exit` command.
+- function call without using parameter variables.
+- string literal.
+
+### Changes
+- in function calls, `=` changes to `:`. Example: `func(a = 5)` to be `func(a : 5)`.
+- `print` can be used inside expression. behave like passing objects.
+- change `print` to `print(...)` to support multiple variables.
 
 ### Fixes
 - reusable of variables outside of functions.
+- Fixing multi-line comments.
 
 ### Bugs
 - reusable of variable inside of functions.

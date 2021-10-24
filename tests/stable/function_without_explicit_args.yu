@@ -4,4 +4,4 @@ func a:
 }
 
 // without explicit arguments (a = 10) -> (10)
-print func(10);
+print (func(10));

@@ -5,7 +5,4 @@ b = .5; // float
 c = 3.; // float
 d = 3.14; // float
 
-print a;
-print b;
-print c;
-print d;
+print(a, b, c, d);

@@ -1,4 +1,4 @@
-multiply a, b:
+multiply a = 10, b:
 {
     return a * b;
 }

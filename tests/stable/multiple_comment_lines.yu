@@ -4,4 +4,4 @@ the second line.
 the third line.
 </
 
-print 5 * 2;
+print (5 * 2);

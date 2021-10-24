@@ -36,6 +36,7 @@ namespace yu {
 
 #define M(x) std::move(x)
 #define C(...) yu::expression(driver.is_debug, __VA_ARGS__ )
+#define CS(...) yu::expression(driver.is_debug, __VA_ARGS__, yu::ex::str)
 typedef std::list<yu::expression *> listeptr_t;
 }
 
@@ -45,9 +46,9 @@ typedef std::list<yu::expression *> listeptr_t;
 %token END 0
 %token<long> INTEGER
 %token<double> FLOAT
-%token<std::string> VARIABLE
+%token<std::string> VARIABLE STRING
 %token PRINT RETURN LOC VAR
-%type <yu::scopes *> exp var_defs params fun_def fun_call args expf param_defs
+%type <yu::scopes *> exp var_defs params fun_def fun_call args expf param_defs print_exps
 %type <yu::scopes> var_def1 arg_def1 param1
 
 %right '='
@@ -55,6 +56,7 @@ typedef std::list<yu::expression *> listeptr_t;
 %left '*' '/'
 %left '^' '%'
 %nonassoc UMINUS
+%nonassoc PRINT
 
 %locations
 %start calclist
@@ -63,7 +65,6 @@ typedef std::list<yu::expression *> listeptr_t;
 
 calclist: %empty
    | calclist stmt ';' { if (driver.is_interactive == 1) std::cout << "y> "; }
-   | calclist PRINT exp ';' { driver.console($3->expr.eval<double>()); if (driver.is_interactive == 1) std::cout << "y> ";}
    | calclist PRINT LOC ';' { 
                               driver.console("parent: " + driver.sc_in->prev->name + ", loc: " + driver.sc_in->name);
                               if (driver.is_debug == 1) {
@@ -124,6 +125,7 @@ fun_def: VARIABLE
             driver.tmp_fdef.back()->ret = $8;
             driver.sc_in = driver.sc_out;
             driver.sc_out = driver.sc_in->prev;
+            driver.tmp_fdef.back()->param_reset();
             $$ = driver.tmp_fdef.back();
             driver.tmp_fdef.pop_back();
          }
@@ -157,12 +159,13 @@ args: %empty
    | arg_def1 { auto tmp = &(driver.tmp_fcall.back()->curr_scope[$1.name]); tmp->assign($1.prev); }
    | args ',' arg_def1 { auto tmp = &(driver.tmp_fcall.back()->curr_scope[$3.name]); tmp->assign($3.prev); }
 
-arg_def1: VARIABLE '=' expf { $$ = yu::scopes($3, $1);}
+arg_def1: VARIABLE ':' expf { $$ = yu::scopes($3, $1); }
+   | expf { std::string str_arg =  driver.tmp_fcall.back()->param_pop(); $$ = yu::scopes($1, str_arg); }
    ;
 
 params: %empty
-   | param1 { $$ = driver.def($1.name); if($1.prev) $$->assign($1.prev);}
-   | params ',' param1 { $$ = driver.def($3.name); if($3.prev) $$->assign($3.prev); }
+   | param1 { driver.tmp_fdef.back()->param_push($1.name); $$ = driver.def($1.name); if($1.prev) $$->assign($1.prev);}
+   | params ',' param1 { driver.tmp_fdef.back()->param_push($3.name); $$ = driver.def($3.name); if($3.prev) $$->assign($3.prev); }
    ;
 
 param_defs: VAR param1 { $$ = driver.def($2.name); if($2.prev) $$->assign($2.prev);}
@@ -181,9 +184,21 @@ var_def1: VARIABLE '=' exp { $$ = yu::scopes($3, $1);}
    | VARIABLE { $$ = yu::scopes(nullptr, $1); }
    ;
 
+print_exps: exp { $$ = $1; 
+                  expr_val extmp = $1->expr.eval<expr_val>(); 
+                  if(!extmp.s.empty()) driver.console(extmp.s); 
+                  else driver.console(extmp.d);
+                  }
+   | print_exps ',' exp { $$ = $3; 
+                  expr_val extmp = $3->expr.eval<expr_val>(); 
+                  if(!extmp.s.empty()) driver.console(extmp.s); 
+                  else driver.console(extmp.d);}
+   ;
+
 exp: INTEGER { $$ = driver.temp(); $$->expr.assign(C($1)); }
    | FLOAT { $$ = driver.temp(); $$->expr.assign(C($1)); }
    | VARIABLE { $$ = driver.use($1); }
+   | STRING { $$ = driver.temp(); $$->expr.assign(CS($1)); }
    | fun_call { $$ = $1; }
    | exp '=' exp { /*$$ = driver.temp(); $$->expr.copy($1->expr); $$->assign($3); $1 = $$;*/ $1->assign($3); $$ = $1; }
    | exp '+' exp { $$ = driver.temp(); $$->expr.assign(C(yu::ex::add, $1->expr, $3->expr)); }
@@ -194,6 +209,7 @@ exp: INTEGER { $$ = driver.temp(); $$->expr.assign(C($1)); }
    | exp '^' exp { $$ = driver.temp(); $$->expr.assign(C(yu::ex::pow, $1->expr, $3->expr)); }
    | exp '%' exp { $$ = driver.temp(); $$->expr.assign(C(yu::ex::mod, $1->expr, $3->expr)); }
    | '(' exp ')' { $$ = $2; }
+   | PRINT '(' print_exps ')' { $$ = $3; }
    ;
 
 expf: INTEGER { $$ = driver.temp(); $$->expr.assign(C($1)); }

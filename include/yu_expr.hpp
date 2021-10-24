@@ -7,6 +7,25 @@
 #include <map>
 #include <math.h>
 #include <iostream>
+#include <string>
+
+struct expr_val{
+    double d;
+    std::string s;
+    expr_val(double i): d(i) {}
+    expr_val(std::string ss): s(ss) {}
+    expr_val& operator=(double i) {this->d = i; return *this; }
+    expr_val& operator+=(double i) {this->d += i; return *this; }
+    expr_val& operator+=(const expr_val& ee) {this->d += ee.d; return *this; }
+    expr_val& operator-(const expr_val& ee) {this->d -= ee.d; return *this; }
+    expr_val& operator*(const expr_val& ee) {this->d *= ee.d; return *this; }
+    expr_val& operator/(const expr_val& ee) {this->d /= ee.d; return *this; }
+    expr_val& operator+(const expr_val& ee) {this->d += ee.d; return *this; }
+    expr_val& pows(const expr_val& ee) {this->d = pow(this->d, ee.d); return *this; }
+    expr_val& operator%(const expr_val& ee) {this->d = (int)this->d % (int)ee.d; return *this; }
+    expr_val& operator-() {this->d = -(this->d); return *this; }
+    expr_val& operator=(const std::string& ss) {this->s = ss; return *this; }
+};
 
 namespace yu {
 
@@ -28,6 +47,7 @@ struct expression {
     id id_type = id::undefined;
     long int_val = 0;
     double flt_val = 0.;
+    std::string str_val;
     int is_debug = 0;
     std::list<expression> children;
     std::list<expression *> childf;
@@ -40,6 +60,7 @@ struct expression {
     expression(int d, double v) : ex_type(ex::flt), flt_val(v), is_debug(d) {}
     expression(int d, const std::string& str) : ex_type(ex::ident), id_type(id::variable), is_debug(d) {}
     expression(int d, const std::string& str, id t) : ex_type(ex::ident), id_type(t), is_debug(d) {}
+    expression(int d, const std::string& str, ex e) : ex_type(e), id_type(id::variable), str_val(str), is_debug(d) {}
     void assign(expression&& e)
     {
         if(children.size() != 0) children.clear();
@@ -93,19 +114,20 @@ struct expression {
         {
             case ex::integer: v = int_val; break;
             case ex::flt: v = flt_val; break;
+            case ex::str: v = str_val; break;
             case ex::add: for( auto i : children ) v += i.eval<T>(); break;
             case ex::subs: v = children.front().eval<T>() - children.back().eval<T>(); break;
             case ex::mul: v = children.front().eval<T>() * children.back().eval<T>(); break;
             case ex::div: v = children.front().eval<T>() / children.back().eval<T>(); break;
-            case ex::pow: v = pow(children.front().eval<T>(), children.back().eval<T>()); break;
-            case ex::mod: v = (int)children.front().eval<T>() % (int)children.back().eval<T>(); break;
+            case ex::pow: v = children.front().eval<T>().pows(children.back().eval<T>()); break;
+            case ex::mod: v = children.front().eval<T>() % children.back().eval<T>(); break;
             case ex::neg: v = - children.back().eval<T>(); break;
             case ex::addf: for( auto i : childf ) v += i->eval<T>(); break;
             case ex::subsf: v = childf.front()->eval<T>() - childf.back()->eval<T>(); break;
             case ex::mulf: v = childf.front()->eval<T>() * childf.back()->eval<T>(); break;
             case ex::divf: v = childf.front()->eval<T>() / childf.back()->eval<T>(); break;
-            case ex::powf: v = pow(childf.front()->eval<T>(), childf.back()->eval<T>()); break;
-            case ex::modf: v = (int)childf.front()->eval<T>() % (int)childf.back()->eval<T>(); break;
+            case ex::powf: v = childf.front()->eval<T>().pows(childf.back()->eval<T>()); break;
+            case ex::modf: v = childf.front()->eval<T>() % childf.back()->eval<T>(); break;
             case ex::negf: v = - childf.back()->eval<T>(); break;
             case ex::ident: v = children.back().eval<T>(); break;
             default: v = 0;
@@ -119,12 +141,30 @@ struct scopes {
     expression expr;
     scopes *prev = nullptr;
     scopes *ret = nullptr;
+    int int_params = 0;
     std::map<std::string, scopes> curr_scope;
+    std::vector<std::string> loc_params;
 
     scopes(scopes *pre, const std::string& n, expression&& e) : name(n), expr(std::move(e)), prev(pre) {}
     scopes(scopes *pre, const std::string& n) : name(n), prev(pre) {}
     scopes() {
         curr_scope.emplace("main", scopes(this, "main"));
+    }
+    void param_push(std::string s) {
+        loc_params.push_back(s);
+        int_params++;
+    }
+
+    void param_reset()
+    {
+        int_params = 0;
+    }
+
+    std::string param_pop()
+    {
+        std::string s = loc_params[int_params];
+        int_params++;
+        return s;
     }
 
     void assign(scopes * sc)
