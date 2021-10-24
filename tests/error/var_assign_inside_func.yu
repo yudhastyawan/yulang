@@ -1,0 +1,14 @@
+func e:
+{
+    var a = 3;
+    var b = 4;
+    var c = a + b; // c = 7
+    // testing whether a is still assigned
+    var d = a + e; // d = 13 -> worked
+    // testing whether d is changed if a was changed
+    a = 15; // d != 25 -> failed
+    d = a + 1;
+    return d;
+}
+
+print func(e = 10);

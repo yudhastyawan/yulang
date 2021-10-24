@@ -46,6 +46,16 @@ struct expression {
         children.push_back(std::move(e));
     }
 
+    void copy(const expression& e) {
+        ex_type = e.ex_type;
+        id_type = e.id_type;
+        int_val = e.int_val;
+        flt_val = e.flt_val;
+        is_debug = e.is_debug;
+        children = e.children;
+        childf = e.childf;
+    }
+
     template <class T>
     T eval()
     {

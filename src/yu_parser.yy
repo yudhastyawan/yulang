@@ -185,14 +185,14 @@ exp: INTEGER { $$ = driver.temp(); $$->expr.assign(C($1)); }
    | FLOAT { $$ = driver.temp(); $$->expr.assign(C($1)); }
    | VARIABLE { $$ = driver.use($1); }
    | fun_call { $$ = $1; }
-   | exp '=' exp { $1->assign($3); $$ = $1; }
-   | exp '+' exp { $$ = driver.temp(); $$->expr.assign(C(yu::ex::add, M($1->expr), M($3->expr))); }
-   | exp '-' exp { $$ = driver.temp(); $$->expr.assign(C(yu::ex::subs, M($1->expr), M($3->expr))); }
-   | '-' exp %prec UMINUS { $$ = driver.temp(); $$->expr.assign(C(yu::ex::neg, M($2->expr))); }
-   | exp '*' exp { $$ = driver.temp(); $$->expr.assign(C(yu::ex::mul, M($1->expr), M($3->expr))); }
-   | exp '/' exp { $$ = driver.temp(); $$->expr.assign(C(yu::ex::div, M($1->expr), M($3->expr))); }
-   | exp '^' exp { $$ = driver.temp(); $$->expr.assign(C(yu::ex::pow, M($1->expr), M($3->expr))); }
-   | exp '%' exp { $$ = driver.temp(); $$->expr.assign(C(yu::ex::mod, M($1->expr), M($3->expr))); }
+   | exp '=' exp { /*$$ = driver.temp(); $$->expr.copy($1->expr); $$->assign($3); $1 = $$;*/ $1->assign($3); $$ = $1; }
+   | exp '+' exp { $$ = driver.temp(); $$->expr.assign(C(yu::ex::add, $1->expr, $3->expr)); }
+   | exp '-' exp { $$ = driver.temp(); $$->expr.assign(C(yu::ex::subs, $1->expr, $3->expr)); }
+   | '-' exp %prec UMINUS { $$ = driver.temp(); $$->expr.assign(C(yu::ex::neg, $2->expr)); }
+   | exp '*' exp { $$ = driver.temp(); $$->expr.assign(C(yu::ex::mul, $1->expr, $3->expr)); }
+   | exp '/' exp { $$ = driver.temp(); $$->expr.assign(C(yu::ex::div, $1->expr, $3->expr)); }
+   | exp '^' exp { $$ = driver.temp(); $$->expr.assign(C(yu::ex::pow, $1->expr, $3->expr)); }
+   | exp '%' exp { $$ = driver.temp(); $$->expr.assign(C(yu::ex::mod, $1->expr, $3->expr)); }
    | '(' exp ')' { $$ = $2; }
    ;
 
@@ -200,7 +200,7 @@ expf: INTEGER { $$ = driver.temp(); $$->expr.assign(C($1)); }
    | FLOAT { $$ = driver.temp(); $$->expr.assign(C($1)); }
    | VARIABLE { $$ = driver.use($1); }
    | fun_call { $$ = $1; }
-   | expf '=' expf { $1->assign($3); $$ = $1; }
+   | expf '=' expf { $$ = driver.temp(); $$->expr.copy($1->expr); $$->assign($3); $1 = $$; /*$1->assign($3); $$ = $1;*/ }
    | expf '+' expf { $$ = driver.temp(); $$->expr.assign(C(yu::ex::addf, listeptr_t{&($1->expr), &($3->expr)})); }
    | expf '-' expf { $$ = driver.temp(); $$->expr.assign(C(yu::ex::subsf, listeptr_t{&($1->expr), &($3->expr)})); }
    | '-' expf %prec UMINUS { $$ = driver.temp(); $$->expr.assign(C(yu::ex::negf, listeptr_t{&($2->expr)})); }

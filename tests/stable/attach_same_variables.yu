@@ -1,0 +1,10 @@
+var a = 5;
+var b = 3;
+
+// testing whether a and b is not zero.
+var c = a + b;
+
+a = 10;
+print c; // c = 8 -> worked
+print a; // a = 10 -> worked
+print b; // b = 3 -> worked

@@ -1,7 +1,7 @@
-/*
+/>
 this is multiple comments.
 the second line.
 the third line.
-*/
+</
 
 print 5 * 2;

@@ -23,13 +23,14 @@ std::vector<std::ifstream*> fil_vec;
 %option c++
 
 %x IFILE
+%x COMMENTS
 
 %%
 %{          /** Code executed at the beginning of yylex **/
             yylval = lval;
 %}
 import:[ \t]*[\"<]+ { BEGIN(IFILE); }
-<IFILE>[^ \t\n\">]+ {
+<IFILE>[^\t\n\">]+ {
     {
         int c;
         while((c = yyinput()) && c != '\n');
@@ -59,6 +60,14 @@ import:[ \t]*[\"<]+ { BEGIN(IFILE); }
             }
         }
 
+
+"/>"[ \t\n]* { BEGIN(COMMENTS); }
+<COMMENTS>{
+    [ \t\n]+ { }
+    . { }
+    [ \t\n]*"</" { BEGIN(INITIAL); }
+}
+
 "+" |
 "-" |
 "*" |
@@ -73,6 +82,7 @@ import:[ \t]*[\"<]+ { BEGIN(IFILE); }
 "%" |
 "," |
 "/" { return yytext[0]; }
+"exit" { exit(EXIT_SUCCESS); }
 "print" { return token::PRINT; }
 "return" { return token::RETURN; }
 "loc" { return token::LOC; }
