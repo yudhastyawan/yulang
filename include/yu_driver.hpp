@@ -62,8 +62,8 @@ public:
    std::vector<yu::scopes*> tmp_fdef;
    std::vector<yu::scopes*> tmp_fcall;
 
-   bool is_interactive = 0;
-   bool is_debug = 0;
+   int is_interactive = 0;
+   int is_debug = 0;
    
 private:
 

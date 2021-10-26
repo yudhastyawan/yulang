@@ -12,8 +12,6 @@ project(yulang CXX)
 
 cmake_minimum_required(VERSION 3.1)
 
-# configure_file(${CMAKE_CURRENT_SOURCE_DIR}/yu_expr.hpp ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
-
 find_package(BISON REQUIRED)
 find_package(FLEX REQUIRED)
 
