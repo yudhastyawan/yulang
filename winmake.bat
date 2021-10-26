@@ -1,0 +1,1 @@
+cmake -G "Unix Makefiles" .. -DCMAKE_C_COMPILER="C:/compiler/mingw64/bin/gcc.exe" -DCMAKE_CXX_COMPILER="C:/compiler/mingw64/bin/g++.exe" -DPYTHON_LIBRARY="C:/ProgramData/Miniconda3/libs" -DPYTHON_INCLUDE_DIR="C:/ProgramData/Miniconda3/include"

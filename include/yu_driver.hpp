@@ -40,7 +40,7 @@ public:
 
    template <typename A>
    std::ostream& console_basic(const A& arg){
-        return (std::cout << color::blue << "print: " << color::norm << arg << std::endl);
+        return (std::cout << "print: " << arg << std::endl);
    }
 
    std::ostream& console(double arg);

@@ -1,4 +1,6 @@
 IF (WIN32)
+    # set(CMAKE_C_COMPILER "C:/msys64/mingw64/bin/gcc.exe")
+    # set(CMAKE_CXX_COMPILER "C:/msys64/mingw64/bin/g++.exe")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-deprecated-register")
     set(FLEX_INCLUDE_DIR "C:/msys64/usr/include")
 ELSE()
@@ -39,3 +41,66 @@ target_include_directories(yulang
         ${CMAKE_CURRENT_BINARY_DIR})
 set_property(TARGET yulang
              PROPERTY CXX_STANDARD 17)
+
+# create yulang embeding for python
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -fPIC")
+add_library(yupy STATIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/yu_py.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/yu_driver.cpp
+
+    ${FLEX_yu_lexer_OUTPUTS}
+    ${BISON_yu_parser_OUTPUTS}
+)
+target_include_directories(yupy
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${FLEX_INCLUDE_DIRS}
+        ${CMAKE_CURRENT_BINARY_DIR})
+set_property(TARGET yupy
+             PROPERTY CXX_STANDARD 17)
+
+find_package(PythonLibs)
+message(STATUS ${PYTHON_INCLUDE_PATH})
+message(STATUS ${PYTHON_LIBRARIES})
+string(REPLACE "."  ";" str "${PYTHONLIBS_VERSION_STRING}")
+list(GET str 0 py1)
+list(GET str 1 py2)
+set(PYLIB python${py1}${py2})
+message(STATUS ${PYLIB})
+
+find_package(SWIG)
+include(UseSWIG)
+
+set (UseSWIG_TARGET_NAME_PREFERENCE STANDARD)
+set_property(SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/python/yulang.i PROPERTY CPLUSPLUS ON)
+swig_add_library(yulangpy
+    LANGUAGE python
+    SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/python/yulang.i)
+
+set_property(TARGET yulangpy PROPERTY SWIG_USE_TARGET_INCLUDE_DIRECTORIES TRUE)
+target_include_directories(yulangpy
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${PYTHON_INCLUDE_PATH}
+)
+
+target_link_directories(yulangpy
+    PUBLIC
+    ${PYTHON_LIBRARIES}
+)
+
+if(WIN32)
+set(SWIG_WIN_INCLUDE_DIRECTORIES C:/msys64/usr/share/swig/4.0.2)
+target_include_directories(yulangpy
+    PUBLIC
+    ${SWIG_WIN_INCLUDE_DIRECTORIES}
+    ${SWIG_WIN_INCLUDE_DIRECTORIES}/python)
+endif()
+
+target_link_libraries(yulangpy
+    PUBLIC 
+        yupy
+        ${PYLIB}    
+)

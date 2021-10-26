@@ -1,0 +1,2 @@
+include src/yulang/*.pyd
+include src/yulang/*.dll
