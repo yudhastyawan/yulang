@@ -1,22 +1,13 @@
 # Yu Language - yulang
 
 A toy project for creating a simple programming language using Bison and Flex in C++.
-
-
-## interface
-```bash
-$ ./yulang
-Yu Language 0.0.1 (unstable, Oct 23 2021, 21:31:19)
-use:    yulang -c               = interactive console
-        yulang <filename>       = running the script file
-        yulang -v               = version
-        yulang -h               = this menu
-        (...) -d [end line]     = developer/debug monitor
-```
+This is the wrapper to Python.
 
 ## interactive console
-```bash
-$ ./yulang -c
+```python
+$ python
+>>> import yulang
+>>> yulang.console()
 Yu Language 0.0.1 (unstable, Oct 23 2021, 21:31:19)
 interactive:
 y> var a = 3;
@@ -26,6 +17,14 @@ y> square a: {return a ^ 2;}
 y> print(square(a : 10));
 print: 100
 y> 
+```
+
+## parsing Python string
+```python
+$ python
+>>> import yulang
+>>> yulang.parse("var a = 10; print(a);")
+print: 10
 ```
 
 ## examples
@@ -42,8 +41,10 @@ print((5. + 5.) / 3.);
 ```
 
 output:
-```bash
-$ ./yulang tests/stable/arithmetics.yu 
+```python
+$ python
+>>> import yulang
+>>> yulang.read("path/to/arithmetics.yu") 
 print: 40
 print: -20
 print: 0.333333
@@ -60,9 +61,10 @@ var a = "hello world";
 print(a);
 ```
 
-output:
-```bash
-$ ./yulang tests/stable/strings.yu  
+```python
+$ python
+>>> import yulang
+>>> yulang.read("path/to/strings.yu")  
 print: hello world
 ```
 
@@ -90,8 +92,10 @@ print(myVol);
 ```
 
 output:
-```bash
-$ ./yulang tests/stable/functions.yu  
+```python
+$ python
+>>> import yulang
+>>> yulang.read("path/to/functions.yu")  
 print: 120
 ```
 
@@ -113,8 +117,10 @@ print(d);
 ```
 
 output:
-```bash
-$ ./yulang tests/stable/variables.yu 
+```python
+$ python
+>>> import yulang
+>>> yulang.read("path/to/variables.yu") 
 print: 10
 print: 0.5
 print: 3
@@ -145,7 +151,9 @@ print(c);
 ```
 
 output:
-```bash
-$ ./yulang tests/stable/multi_files.yu
+```python
+$ python
+>>> import yulang
+>>> yulang.read("path/to/multi_files.yu")
 print: 200
 ```
