@@ -1,7 +1,11 @@
 # Yu Language - yulang
+[![PyPI version](https://badge.fury.io/py/yulang.svg)](https://badge.fury.io/py/yulang)
+[![GitHub issues](https://img.shields.io/github/issues/yudhastyawan/yulang)](https://github.com/yudhastyawan/yulang/issues)
+[![GitHub forks](https://img.shields.io/github/forks/yudhastyawan/yulang)](https://github.com/yudhastyawan/yulang/network)
+[![GitHub stars](https://img.shields.io/github/stars/yudhastyawan/yulang)](https://github.com/yudhastyawan/yulang/stargazers)
+[![GitHub license](https://img.shields.io/github/license/yudhastyawan/yulang)](https://github.com/yudhastyawan/yulang)
 
 A toy project for creating a simple programming language using Bison and Flex in C++.
-
 
 ## interface
 ```bash
